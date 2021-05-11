@@ -5,20 +5,12 @@ Created on Mon Sep 21 10:19:54 2020
 @author: yudis
 """
 
-#import argparse
-#import cv2
 import numpy as np
 import torch
-#from torch.autograd import Function
-#from torchvision import models
-#from torchvision import transforms
-#from torchvision import datasets
-#from torch.utils.data import DataLoader
-#import torch.nn.functional as F
 import pandas as pd
 #from numpy import array
 from sklearn.preprocessing import MinMaxScaler
-#from torch import nn, optim
+from torch import nn, optim
 #from sklearn.metrics import mean_squared_error
 #from math import sqrt
 import matplotlib.pyplot as plt
@@ -157,7 +149,7 @@ mv_net = MV_LSTM(n_features,174).cuda()
 X_test=X[3:4,:,:]
 
 
-mv_net.load_state_dict(torch.load("deep_lstm_gradcam_total.pt"))
+mv_net.load_state_dict(torch.load("deep_lstm_gradcam_59_total.pt"))
 mv_net.init_hidden(1)    
 lstm_out = mv_net(torch.tensor(X_test,dtype=torch.float32).cuda())
 lstm_out=lstm_out.cpu().data.numpy().reshape(1,174,59)
