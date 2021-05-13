@@ -21,9 +21,7 @@ from torch import nn, optim
 
 def split_sequences(sequences, n_steps):
     X, y = list(), list()
-    
-    #data2_scale=data2_scale[~(data2_scale[:,0:3]==0).all(1)]
-    #df_china=scaler.fit_transform(df[(is_china)][['confirmed','recovered','deaths']])
+
     
     #scaler = MinMaxScaler()
     for i in range(0,len(sequences),109):
@@ -53,14 +51,10 @@ def show_cam_on_image(img, mask,i,j):
     heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
     heatmap = np.float32(heatmap) / 255
     print (heatmap.shape)
-    #print (heatmap.shape,np.rollaxis(heatmap,0,2).shape)
+    
     cam = heatmap #*(np.float32(img)).transpose(1, 2, 0)
     cam = cam / np.max(cam)
-    
-    #print ( cam[0],cam[0].shape, type(cam))
-    #print ( img.transpose(1, 2, 0)[0],img.transpose(1, 2, 0)[0].shape, type(img))
-    #print (img.transpose(1, 2, 0).transpose(1,0,2)[0],img.transpose(1, 2, 0).transpose(1,0,2).shape, cam.transpose(1,0,2).shape)
-    
+     
     np.save('cam_array', cam.transpose(1,0,2))
     
     cv2.imwrite("./brain_unet/gradcam/att_dot/lstm_unity_norway_gdp%s_%s.jpg" %(i, j), np.uint8(255*cam))
@@ -98,10 +92,6 @@ class FeatureExtractor():
         outputs = []
         self.gradients = []
         
-        #for name, module in self.model._modules.items():
-        #    x = module(x)
-        #    print (name,self.target_layers)
-            #if name in self.target_layers:
         print ('xshape',x.shape)
         
         x.register_hook(self.save_gradient)
@@ -157,30 +147,14 @@ class GradCam:
         else:
             features, output = self.extractor(input)
         
-        output=1-output.resize(1,174,59)
+        output=1-output.resize(1,174,59) # to see what factors makes negative growth, otherwise, for positive growth set--> output=output.resize(1,174,59)
         
         print (features[-1].shape, output.shape)
-        
-        #if index == None:
-        #    index = np.argmax(output[0].cpu().data.numpy())
-            
-        #print (index)
-        #quit()
 
         one_hot = np.zeros((1, output.size()[-2], output.size()[-1]), dtype=np.float32)
         
         one_hot[0][:][8] = 1
-        output_diff = output[0][1:] - output[0][:-1]
-        output_diff = nn.functional.pad(output_diff, (0,0,1,0))
-        input_diff = input[0][1:] - input[0][:-1]
-        input_diff = nn.functional.pad(input_diff, (0,0,1,0))
-        m=nn.ReLU()
-        output_diff = m(output_diff)
-        input_diff = m(input_diff)
        
-        
-        #one_hot=one_hot.reshape(1,174,59)
-        #mse=torch.nn.MSELoss()
         one_hot = torch.from_numpy(one_hot).requires_grad_(True)
         if self.cuda:
             one_hot = torch.sum(one_hot.cuda() * output)
@@ -188,37 +162,21 @@ class GradCam:
             one_hot = torch.sum(one_hot * output)
         
         
-        
-
         self.feature_module.zero_grad()
         self.model.zero_grad()
         one_hot.backward(retain_graph=True)
         
-        #print (self.extractor.get_gradients()[-1].shape)
-        #quit()
         weights = self.extractor.get_gradients()[-1].cpu().data.numpy()
-        
         
         target = features[-1]
         target = target.cpu().data.numpy()[0, :]
         print (weights.shape)
         weights = np.mean(weights, axis=(0))
        
-        #cam = np.zeros(target.shape[1:], dtype=np.float32)
-        #print (weights)
-        #for i, w in enumerate(weights):
-        #    cam += w * target[:,i]
-        
-        
         cam = weights*(target)#+(input).cpu().data.numpy()[0, :])
-
-        #
+ 
         cam = np.maximum(cam, 0)
-        
-        increase=input_diff.cpu().data.numpy()
-        increase[increase>0]=1
-        
-        print (input.shape[1:])
+      
         cam = cv2.resize(cam, torch.Size([59, 174]))#*increase
         print (cam.shape)
         
@@ -229,36 +187,6 @@ class GradCam:
 #from model2 import UNet
 
 
-"""
-#==============================================================================
-# Transform
-#==============================================================================
-normalize = transforms.Normalize(mean=[0.595, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-
-
-transformer = transforms.Compose([
-    transforms.Resize((256,256)),
-    #transforms.RandomAffine((-180,180)),
-    #transforms.RandomResizedCrop(224),
-#    transforms.Grayscale(),
-#    transforms.Resize((h,w)),
-    transforms.ToTensor(),
-    #normalize,
-    ])
-
-transformer2 = transforms.Compose([
-    transforms.Resize((256,256)),
-    #transforms.RandomAffine(degrees=(-180,180)),
-    #transforms.RandomResizedCrop(256),
-    #transforms.Grayscale(),
-#    transforms.Resize((h,w)),
-    transforms.ToTensor(),
-    normalize,
-    ])
-
-# Tentukan 1 dataset
-dataset = datasets.ImageFolder(root='.\COVID-19-master\COVID-19-master\X-Ray Image DataSet', transform=transformer)
-"""
 class MV_LSTM(torch.nn.Module):
     def __init__(self,n_features,seq_length):
         super(MV_LSTM, self).__init__()
