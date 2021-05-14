@@ -13,3 +13,8 @@
 6. Run grad-cam-lstm.py to obtain visual attribution to time-series prediction
 
 7. Run test_matplotlib.py to plot the visual attribution
+
+
+Reference:
+
+Yudistira, N., Sumitro, S. B., Nahas, A., & Riama, N. F. (2021). Learning where to look for COVID-19 growth: Multivariate analysis of COVID-19 cases over time using explainable convolution-LSTM. Applied Soft Computing, 107469.
