@@ -147,7 +147,7 @@ class GradCam:
         else:
             features, output = self.extractor(input)
         
-        output=1-output.resize(1,174,59) # to see what factors are attributed to valley of graph, otherwise, for peak part of the graph, set--> output=output.resize(1,174,59)
+        output=1-output.resize(1,174,59) # to see what factors are attributed to counterfactual, otherwise, for prediction outcome, set--> output=output.resize(1,174,59)
         
         print (features[-1].shape, output.shape)
 
